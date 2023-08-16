@@ -173,6 +173,12 @@ class AlbumsHandler {
       this._validator.validateSongPayload(request.payload);
       const { title, year, genre, performer, duration = null, albumId = null } = request.payload;
       const MusicId = await this._service.addSong({ title, year, genre, performer, duration, albumId });
+      const postSong = await this._service.putSongInAlbum(albumId, MusicId);
+
+      // console.log(postSong[0].songs);
+      // console.log(typeof(postSong));
+      // postSong.push('bayyy');
+      // console.log(postSong);
       // const albumId = JSON.stringify(AlbumId);
 
       const response = h.response({
@@ -180,6 +186,7 @@ class AlbumsHandler {
         message: 'Menambahkan Music',
         data: {
           songId: MusicId,
+          album: postSong,
         },
       });
       response.code(201);

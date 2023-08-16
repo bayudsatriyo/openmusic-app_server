@@ -72,6 +72,32 @@ class AlbumsService {
     }
   }
 
+  async putSongInAlbum(albumId, songsId){
+    const querySongs = {
+      text: 'SELECT songs FROM musics WHERE id = $1',
+      values: [albumId],
+    }; 
+
+    const tmpSongs = await this._pool.query(querySongs);
+    
+    // return tmpSongs.rows.map(mapDBToModel)[0].songs;
+    const pushSong = tmpSongs.rows.map(mapDBToModel)[0].songs;
+    pushSong.push(songsId);
+    
+    const query = {
+      text: 'UPDATE musics SET songs = $1 WHERE id = $2 RETURNING id, name, year, songs',
+      values: [pushSong, albumId],
+    };
+
+    const result = await this._pool.query(query);
+    // cek errorrnya !!!!!!!!
+    // if (!result.rows.length) {
+    //   throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
+    // }
+    
+    return result.rows.map(mapDBToModel);
+  }
+
   // Song Service
   async addSong({ title, year, genre, performer, duration, albumId }) {
     const id = "songs-" + nanoid(16);
