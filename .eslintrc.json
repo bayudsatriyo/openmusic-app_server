@@ -1,0 +1,22 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": "airbnb-base",
+    "overrides": [
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "no-console": "off",
+        "linebreak-style": 0,
+        "class-methods-use-this": "off",
+        "no-underscore-dangle": 0,
+        "no-undef": "off",
+        "no-unused-vars": "off",
+        "eslint-disable-next-line camelcase": false
+    }
+}
