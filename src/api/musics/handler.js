@@ -21,9 +21,12 @@ class AlbumsHandler {
   async postAlbumHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
-      const { name = 'untitled', year } = request.payload;
-      const AlbumId = await this._service.addAlbum({ name, year });
+      const { name, year, songs } = request.payload;
+      const AlbumId = await this._service.addAlbum({ name, year, songs });
       // const albumId = JSON.stringify(AlbumId);
+      if(songs != null){
+        console.log(songs);
+      }
 
       const response = h.response({
         status: 'success',
@@ -176,7 +179,7 @@ class AlbumsHandler {
         status: 'success',
         message: 'Menambahkan Music',
         data: {
-          musicId: MusicId,
+          songId: MusicId,
         },
       });
       response.code(201);
@@ -203,10 +206,11 @@ class AlbumsHandler {
 
   async getSongsHandler() {
     const Songs = await this._service.getSongs();
+    
     return {
-      status: 'success',
+      status: "success",
       data: {
-        Songs,
+        songs: Songs,
       },
     };
   }
@@ -250,7 +254,7 @@ class AlbumsHandler {
       this._validator.validateSongPayload(request.payload);
       const { title, year, genre, performer, duration = null, albumId = null } = request.payload;
       const { id } = request.params;
-
+  
       await this._service.editSongById(id, { title, year, genre, performer, duration, albumId});
       
       const response = h.response({

@@ -10,12 +10,12 @@ class AlbumsService {
     this._pool = new Pool();
   }
 
-  async addAlbum({ name, year }) {
+  async addAlbum({ name, year, songs }) {
     const id = nanoid(16);
 
     const query = {
-      text: 'INSERT INTO musics VALUES($1, $2, $3) RETURNING id',
-      values: [id, name, year],
+      text: 'INSERT INTO musics VALUES($1, $2, $3, $4) RETURNING id',
+      values: [id, name, year, [songs]],
     };
 
     const result = await this._pool.query(query);
@@ -91,7 +91,8 @@ class AlbumsService {
   }
 
   async getSongs() {
-    const result = await this._pool.query('SELECT * FROM songs');
+    const result = await this._pool.query('SELECT id, title, performer FROM songs');
+    console.log('get all song');
     return result.rows.map(mapSongToModel);
   }
 
