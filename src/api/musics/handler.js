@@ -23,10 +23,6 @@ class AlbumsHandler {
       this._validator.validateAlbumPayload(request.payload);
       const { name, year, songs } = request.payload;
       const AlbumId = await this._service.addAlbum({ name, year, songs });
-      // const albumId = JSON.stringify(AlbumId);
-      if(songs != null){
-        console.log(songs);
-      }
 
       const response = h.response({
         status: 'success',
@@ -171,22 +167,19 @@ class AlbumsHandler {
   async postSongHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
-      const { title, year, genre, performer, duration = null, albumId = null } = request.payload;
+      const { title, year, genre, performer, duration = null, albumId } = request.payload;
       const MusicId = await this._service.addSong({ title, year, genre, performer, duration, albumId });
-      const postSong = await this._service.putSongInAlbum(albumId, MusicId);
 
-      // console.log(postSong[0].songs);
-      // console.log(typeof(postSong));
-      // postSong.push('bayyy');
-      // console.log(postSong);
-      // const albumId = JSON.stringify(AlbumId);
+      if(albumId != null){
+        await this._service.putSongInAlbum(albumId, MusicId);
+      }
+      
 
       const response = h.response({
         status: 'success',
         message: 'Menambahkan Music',
         data: {
           songId: MusicId,
-          album: postSong,
         },
       });
       response.code(201);
@@ -259,14 +252,14 @@ class AlbumsHandler {
   async putSongByIdHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
-      const { title, year, genre, performer, duration = null, albumId = null } = request.payload;
+      const { title, year, genre, performer, duration = null } = request.payload;
       const { id } = request.params;
   
-      await this._service.editSongById(id, { title, year, genre, performer, duration, albumId});
+      const SongId = await this._service.editSongById(id, { title, year, genre, performer, duration});
       
       const response = h.response({
         status: 'success',
-        message: 'any',
+        message: 'song dengan id='+ id + 'telah diperbarui',
       });
       response.code(200);
       return response;
@@ -294,10 +287,11 @@ class AlbumsHandler {
   async deleteSongByIdHandler(request, h) {
     try {
       const { id } = request.params;
-      await this._service.deleteSongById(id);
+      const Song = await this._service.deleteSongById(id);
+      
       const response = h.response({
         status: 'success',
-        message: 'any',
+        message: Song,
       });
       response.code(200);
       return response;

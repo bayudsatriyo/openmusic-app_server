@@ -12,9 +12,22 @@ class AlbumsService {
 
   async addAlbum({ name, year, songs }) {
     const id = nanoid(16);
+    if(songs == null){
+      const query = {
+        text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING id',
+        values: [id, name, year],
+      };
+  
+      const result = await this._pool.query(query);
+  
+      if (!result.rows[0].id) {
+        throw new InvariantError('Album gagal ditambahkan');
+      }
 
+      return result.rows[0].id;
+    }
     const query = {
-      text: 'INSERT INTO musics VALUES($1, $2, $3, $4) RETURNING id',
+      text: 'INSERT INTO albums VALUES($1, $2, $3, $4) RETURNING id',
       values: [id, name, year, [songs]],
     };
 
@@ -23,18 +36,18 @@ class AlbumsService {
     if (!result.rows[0].id) {
       throw new InvariantError('Album gagal ditambahkan');
     }
-    console.log("data ditambahkan");
+
     return result.rows[0].id;
   }
 
   async getAlbums() {
-    const result = await this._pool.query('SELECT * FROM musics');
+    const result = await this._pool.query('SELECT * FROM albums');
     return result.rows.map(mapDBToModel);
   }
   
   async getAlbumById(id) {
     const query = {
-        text: 'SELECT * FROM musics WHERE id = $1',
+        text: 'SELECT * FROM albums WHERE id = $1',
         values: [id],
       };
       const result = await this._pool.query(query);
@@ -42,13 +55,18 @@ class AlbumsService {
       if (!result.rows.length) {
         throw new NotFoundError('Albums tidak ditemukan');
       }
-      console.log(result.rows.map(mapDBToModel)[0]);
-      return result.rows.map(mapDBToModel)[0];
+
+      const cekAlbum = result.rows.map(mapDBToModel)[0];
+      if(cekAlbum.songs === null){
+        cekAlbum.songs = [];
+        return cekAlbum;
+      }
+      return cekAlbum;
   }
 
   async editAlbumById(id, { name, year }) {
     const query = {
-        text: 'UPDATE musics SET name = $1, year = $2 WHERE id = $3 RETURNING id',
+        text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
         values: [name, year, id],
       };
 
@@ -61,7 +79,7 @@ class AlbumsService {
 
   async deleteAlbumById(id) {
     const query = {
-      text: 'DELETE FROM musics WHERE id = $1 RETURNING id',
+      text: 'DELETE FROM albums WHERE id = $1 RETURNING id',
       values: [id],
     };
  
@@ -74,18 +92,28 @@ class AlbumsService {
 
   async putSongInAlbum(albumId, songsId){
     const querySongs = {
-      text: 'SELECT songs FROM musics WHERE id = $1',
+      text: 'SELECT songs FROM albums WHERE id = $1',
       values: [albumId],
     }; 
 
     const tmpSongs = await this._pool.query(querySongs);
-    
-    // return tmpSongs.rows.map(mapDBToModel)[0].songs;
+    if(tmpSongs.rows[0].songs === null){
+      const arrayTmpSongsId = [];
+      arrayTmpSongsId[0] = songsId;
+      const queryPushSongs = {
+        text: 'UPDATE albums SET songs = $1 WHERE id = $2 RETURNING id, name, year, songs',
+        values: [arrayTmpSongsId, albumId],
+      };
+  
+      const resultPushSongs = await this._pool.query(queryPushSongs);
+      return resultPushSongs.rows.map(mapDBToModel);
+    }else{
+      // return tmpSongs.rows.map(mapDBToModel)[0].songs;
     const pushSong = tmpSongs.rows.map(mapDBToModel)[0].songs;
     pushSong.push(songsId);
     
     const query = {
-      text: 'UPDATE musics SET songs = $1 WHERE id = $2 RETURNING id, name, year, songs',
+      text: 'UPDATE albums SET songs = $1 WHERE id = $2 RETURNING id, name, year, songs',
       values: [pushSong, albumId],
     };
 
@@ -96,29 +124,56 @@ class AlbumsService {
     // }
     
     return result.rows.map(mapDBToModel);
+    }
   }
 
   // Song Service
   async addSong({ title, year, genre, performer, duration, albumId }) {
-    const id = "songs-" + nanoid(16);
+    if(albumId === null || albumId == '' || albumId == undefined){
+      const id = "songs-" + nanoid(16);
 
-    const query = {
-      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      values: [id, title, year, genre, performer, duration, albumId],
-    };
-
-    const result = await this._pool.query(query);
-
-    if (!result.rows[0].id) {
-      throw new InvariantError('Songs gagal ditambahkan');
+      const query = {
+        text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
+        values: [id, title, year, genre, performer, duration],
+      };
+  
+      const result = await this._pool.query(query);
+  
+      if (!result.rows[0].id) {
+        throw new InvariantError('Songs gagal ditambahkan');
+      }
+      return result.rows[0].id;
     }
-    console.log("Songs ditambahkan");
-    return result.rows[0].id;
+    const tmpAllIdMusic = await this._pool.query('SELECT id FROM albums');
+    const tmpIdAlbum = tmpAllIdMusic.rows.map(mapDBToModel);
+    let tmpSearchIdAlbum = '';
+    tmpIdAlbum.forEach(item => {
+      if (item.id === albumId) {
+          tmpSearchIdAlbum = item.id;
+      }
+    });
+    if (tmpSearchIdAlbum == '') {
+      throw new NotFoundError('Gagal Menambahkan music. Id tidak ditemukan');
+    }
+
+      const id = "songs-" + nanoid(16);
+
+      const query = {
+        text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+        values: [id, title, year, genre, performer, duration, albumId],
+      };
+  
+      const result = await this._pool.query(query);
+  
+      if (!result.rows[0].id) {
+        throw new InvariantError('Songs gagal ditambahkan');
+      }
+      return result.rows[0].id;  
   }
 
   async getSongs() {
     const result = await this._pool.query('SELECT id, title, performer FROM songs');
-    console.log('get all song');
+
     return result.rows.map(mapSongToModel);
   }
 
@@ -132,14 +187,14 @@ class AlbumsService {
       if (!result.rows.length) {
         throw new NotFoundError('Songs tidak ditemukan');
       }
-      console.log(result.rows.map(mapSongToModel)[0]);
+
       return result.rows.map(mapSongToModel)[0];
   }
 
-  async editSongById(id, { title, year, genre, performer, duration, albumId }) {
+  async editSongById(id, { title, year, genre, performer, duration }) {
     const query = {
-        text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, albumId = $6 WHERE id = $7 RETURNING id',
-        values: [title, year, genre, performer, duration, albumId, id],
+        text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5 WHERE id = $6 RETURNING id',
+        values: [title, year, genre, performer, duration, id],
       };
 
       const result = await this._pool.query(query);
@@ -147,19 +202,55 @@ class AlbumsService {
       if (!result.rows.length) {
         throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
       }
+
+      return result;
   }
 
   async deleteSongById(id) {
     const query = {
-      text: 'DELETE FROM songs WHERE id = $1 RETURNING id',
+      text: 'DELETE FROM songs WHERE id = $1 RETURNING id, albumId',
       values: [id],
     };
  
     const result = await this._pool.query(query);
+
  
     if (!result.rows.length) {
       throw new NotFoundError('Song gagal dihapus. Id tidak ditemukan');
     }
+    if(Object.keys(result.rows[0]).length > 1 && result.rows[0].albumid !== null){
+      const albumId = result.rows[0].albumid;
+      const queryDelSong = {
+        text: 'SELECT * FROM albums WHERE id = $1',
+        values: [albumId],
+      };
+
+      const tmpSongs = await this._pool.query(queryDelSong);
+      const arraySongs = tmpSongs.rows.map(mapDBToModel)[0].songs;
+
+
+      for (let i = arraySongs.length - 1; i >= 0; i--) {
+        if (arraySongs[i] === id) {
+          arraySongs.splice(i, 1);
+        }
+      }
+
+      const queryUpdate = {
+        text: 'UPDATE albums SET songs = $1 WHERE id = $2 RETURNING id, name, year',
+        values: [arraySongs, albumId],
+      };
+
+      const resultUpdate = await this._pool.query(queryUpdate);
+
+      if (!resultUpdate.rows.length) {
+        throw new NotFoundError('Gagal menghapus lagu dari album. Album Id tidak ditemukan');
+      }
+
+      return ("songs telah dihapus dari Album");
+    }else{
+      return result.rows[0].id;
+    }
+
   }
   
 

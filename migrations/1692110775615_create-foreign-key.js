@@ -5,7 +5,7 @@ exports.shorthands = undefined;
 exports.up = async (pgm) => {
     await pgm.db.query(`
     ALTER TABLE songs
-    ADD COLUMN albumId VARCHAR(50) REFERENCES musics(id) ON DELETE SET NULL;
+    ADD COLUMN albumId VARCHAR(50) REFERENCES albums(id) ON DELETE SET NULL;
   `);
 };
 

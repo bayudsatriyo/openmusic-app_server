@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 
 exports.up = pgm => {
-    pgm.createTable('musics', {
+    pgm.createTable('albums', {
         id: {
             type: 'VARCHAR(50)',
             primaryKey: true,
@@ -50,6 +50,6 @@ exports.up = pgm => {
 };
 
 exports.down = pgm => {
-    pgm.dropTable('musics');
+    pgm.dropTable('albums');
     pgm.dropTable('songs');
 };
