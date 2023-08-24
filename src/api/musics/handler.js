@@ -169,7 +169,7 @@ class AlbumsHandler {
       this._validator.validateSongPayload(request.payload);
       const { title, year, genre, performer, duration = null, albumId } = request.payload;
       const MusicId = await this._service.addSong({ title, year, genre, performer, duration, albumId });
-
+      console.log(MusicId);
       if(albumId != null){
         await this._service.putSongInAlbum(albumId, MusicId);
       }
