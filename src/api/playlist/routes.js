@@ -2,40 +2,32 @@
     // routes untuk album
     {
       method: 'POST',
-      path: '/albums',
-      handler: handler.postAlbumHandler,
+      path: '/playlist',
+      handler: handler.postPlaylistHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
     },
     {
       method: 'GET',
-      path: '/albums',
-      handler: handler.getAlbumsHandler,
+      path: '/playlist',
+      handler: handler.getPlaylistHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
     },
     {
       method: 'GET',
-      path: '/albums/{id}',
-      handler: handler.getAlbumByIdHandler,
-      options: {
-        auth: 'musicsapp_jwt',
-      },
-    },
-    {
-      method: 'PUT',
-      path: '/albums/{id}',
-      handler: handler.putAlbumByIdHandler,
+      path: '/playlist/{id}',
+      handler: handler.getPlaylistIdHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
     },
     {
       method: 'DELETE',
-      path: '/albums/{id}',
-      handler: handler.deleteAlbumByIdHandler,
+      path: '/playlist/{id}',
+      handler: handler.deletePlaylistByIdHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
