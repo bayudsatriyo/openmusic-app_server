@@ -41,9 +41,25 @@
       },
     },
     {
+      method: 'GET',
+      path: '/playlists/{id}/activities',
+      handler: handler.getActivitiesByIdHandler,
+      options: {
+        auth: 'musicsapp_jwt',
+      },
+    },
+    {
       method: 'DELETE',
       path: '/playlists/{id}',
       handler: handler.deletePlaylistByIdHandler,
+      options: {
+        auth: 'musicsapp_jwt',
+      },
+    },
+    {
+      method: 'DELETE',
+      path: '/playlists/{id}/songs',
+      handler: handler.deleteSongPlaylistByIdHandler,
       options: {
         auth: 'musicsapp_jwt',
       },

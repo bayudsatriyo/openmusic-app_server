@@ -24,9 +24,6 @@
       method: 'DELETE',
       path: '/albums/{id}',
       handler: handler.deleteAlbumByIdHandler,
-      options: {
-        auth: 'musicsapp_jwt',
-      },
     },
 
     // routes untuk songs

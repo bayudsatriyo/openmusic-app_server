@@ -204,15 +204,52 @@ class AlbumsHandler {
     }
   }
 
-  async getSongsHandler() {
-    const Songs = await this._service.getSongs();
+  async getSongsHandler(request, h) {
+    try{
+    const { title, performer } = request.query;
+    console.log(title);
+    console.log(performer);
+    let Songs = null;
+    if(title && performer){
+      Songs = await this._service.getSongByTitlePerformer(title, performer);
+    }else if(title){
+      Songs = await this._service.getSongByTitle(title);
+    }else if(performer){
+      Songs = await this._service.getSongByPerformer(performer);
+    }else{
+      Songs = await this._service.getSongs();
+    }
+
+    console.log(Songs);
     
-    return {
-      status: "success",
+    const response = h.response({
+      status: 'success',
       data: {
         songs: Songs,
       },
-    };
+    });
+    response.code(200);
+    return response;
+    }catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+    
   }
 
   async getSongByIdHandler(request, h) {

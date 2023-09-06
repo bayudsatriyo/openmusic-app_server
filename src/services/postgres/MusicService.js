@@ -191,6 +191,50 @@ class AlbumsService {
       return result.rows.map(mapSongToModel)[0];
   }
 
+  async getSongByTitle(title) {
+    const query = {
+        text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1',
+        values: [`%${title}%`],
+      };
+      const result = await this._pool.query(query);
+      console.log(result.rows);
+
+      if(!result.rows.length) {
+        throw new NotFoundError('Songs tidak ditemukan');
+      }
+      
+      return result.rows.map(mapSongToModel);
+  }
+
+  async getSongByPerformer(performer) {
+    const query = {
+        text: 'SELECT id, title, performer FROM songs WHERE performer ILIKE $1',
+        values: [`%${performer}%`],
+      };
+      const result = await this._pool.query(query);
+
+      if (!result.rows.length) {
+        throw new NotFoundError('Songs tidak ditemukan');
+      }
+
+      return result.rows.map(mapSongToModel);
+  }
+
+  async getSongByTitlePerformer(title, performer) {
+    const query = {
+        text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 AND performer ILIKE $2',
+        values: [`%${title}%`,`%${performer}%`],
+      };
+      
+      const result = await this._pool.query(query);
+      console.log("ini title :"+title)
+      if (!result.rows.length) {
+        throw new NotFoundError('Songs tidak ditemukan');
+      }
+
+      return result.rows.map(mapSongToModel);
+  }
+
   async editSongById(id, { title, year, genre, performer, duration }) {
     const query = {
         text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5 WHERE id = $6 RETURNING id',
