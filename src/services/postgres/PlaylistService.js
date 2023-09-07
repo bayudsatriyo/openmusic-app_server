@@ -6,6 +6,7 @@ const { mapDBSongPlaylistToModel } = require('../../utils/indexSongPlaylist');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 const { mapActivitiesToModel } = require('../../utils/indexActivities');
+const { mapDBPlaylistSongToModel } = require('../../utils/indexPlaylistSong');
 
 class PlaylistService {
   constructor(collaborationService) {
@@ -60,32 +61,46 @@ class PlaylistService {
     return result.rows.map(mapDBPlaylistToModel)[0];
   }
 
-  async getSongsPlaylistById(id) {
+  async getPlaylist_songById(id) {
     //beri username jhon
     const query = {
-      text: 'SELECT playlist.id, playlist.name, users.username AS username, playlist.songs FROM playlist JOIN users ON playlist.owner = users.id WHERE playlist.id = $1',
+      text: 'SELECT\
+      playlist_song.playlist_id AS id,\
+      playlist.name,\
+      users.username\
+  FROM\
+      playlist_song\
+  JOIN\
+      playlist ON playlist_song.playlist_id = playlist.id\
+  JOIN\
+      users ON playlist.owner = users.id\
+  WHERE\
+      playlist_song.playlist_id = $1;',
       values: [id],
     };
     const result = await this._pool.query(query);
+    console.log(result.rows);
+    return result.rows.map(mapDBPlaylistToModel)[0];
+  }
 
-    if (!result.rows.length) {
-      throw new NotFoundError('playlist tidak ditemukan');
-    }
-
-    const songs = result.rows.map(mapDBSongPlaylistToModel)[0].songs;
-    const objekLagu = [];
-    
-    songs.forEach(function (element) {
-      try {
-        let parsedObject = JSON.parse(element);
-        objekLagu.push(parsedObject);
-      } catch (error) {
-        console.error('Tidak dapat mengurai elemen sebagai JSON valid:', error);
-      }
-    });
-    const finalresult = result.rows.map(mapDBSongPlaylistToModel)[0];
-    finalresult.songs = objekLagu;
-    return finalresult;
+  async getSongsPlaylist_songById(id) {
+    //beri username jhon
+    const query = {
+      text: 'SELECT\
+      playlist_song.song_id AS id,\
+      songs.performer,\
+      songs.title\
+  FROM\
+      playlist_song\
+  JOIN\
+      songs ON playlist_song.song_id = songs.id\
+  WHERE\
+      playlist_song.playlist_id = $1;',
+      values: [id],
+    };
+    const result = await this._pool.query(query);
+    console.log(result.rows);
+    return result.rows.map(mapDBPlaylistSongToModel);
   }
 
   async editPlaylistById(id, { name }) {
@@ -101,44 +116,17 @@ class PlaylistService {
     }
   }
 
-  async addSongPlaylistById(id, { songId }) {
+  async addSongPlaylistById(playlist_id, { songId }) {
+    await this.verifySong(songId);
+    const id = `playlist-song-${nanoid(16)}`;
     const querySongs = {
-      text: 'SELECT songs FROM playlist WHERE id = $1',
-      values: [id],
+      text: 'INSERT INTO playlist_song VALUES($1, $2, $3) RETURNING id',
+      values: [id, playlist_id, songId],
     };
 
-    const tmpSongs = await this._pool.query(querySongs);
-
-    if (tmpSongs.rows[0].songs === null) {
-      const arrayTmpSongsId = [];
-      arrayTmpSongsId[0] = await this.verifySong(songId);
-      console.log(arrayTmpSongsId[0]);
-      const queryPushSongs = {
-        text: 'UPDATE playlist SET songs = $1 WHERE id = $2 RETURNING id, name, songs',
-        values: [arrayTmpSongsId, id],
-      };
-
-      const resultPushSongs = await this._pool.query(queryPushSongs);
-      return resultPushSongs.rows.map(mapDBSongPlaylistToModel);
-    } else {
-      // return tmpSongs.rows.map(mapDBToModel)[0].songs;
-      const pushSong = tmpSongs.rows.map(mapDBSongPlaylistToModel)[0].songs;
-      pushSong.push(await this.verifySong(songId));
-
-      const query = {
-        text: 'UPDATE playlist SET songs = $1 WHERE id = $2 RETURNING id, name, songs',
-        values: [pushSong, id],
-      };
-
-      const result = await this._pool.query(query);
-      // cek errorrnya !!!!!!!!
-      // if (!result.rows.length) {
-      //   throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
-      // }
-
-      return result.rows.map(mapDBSongPlaylistToModel);
+    await this._pool.query(querySongs);
     }
-  }
+  
 
   async deletePlaylistById(id) {
     const query = {
@@ -154,40 +142,13 @@ class PlaylistService {
     };
   }
 
-  async deleteSongPlaylistById(id, songId) {
+  async deleteSongPlaylistById(id) {
     const querySongs = {
-      text: 'SELECT songs FROM playlist WHERE id = $1',
+      text: 'DELETE FROM playlist_song WHERE song_id = $1',
       values: [id],
     };
 
-    const tmpSongs = await this._pool.query(querySongs);
-
-    if (!tmpSongs.rows.length) {
-      throw new NotFoundError('playlist tidak ditemukan');
-    }
-
-      // return tmpSongs.rows.map(mapDBToModel)[0].songs;
-    const pushSong = tmpSongs.rows.map(mapDBSongPlaylistToModel)[0].songs;
-    console.log(pushSong)
-    let kondisi = 0;
-    for (let i = pushSong.length - 1; i >= 0; i--) {
-      pushSong[i] = JSON.parse(pushSong[i]);
-      if (pushSong[i].id === songId) {
-        pushSong.splice(i, 1);
-        kondisi = 1;
-      }
-    }
-
-    if (!kondisi) {
-      throw new InvariantError('song tidak ditemukan');
-    }
-
-      const query = {
-        text: 'UPDATE playlist SET songs = $1 WHERE id = $2',
-        values: [pushSong, id],
-      };
-
-      await this._pool.query(query);
+    await this._pool.query(querySongs);
   }
 
   async verifyPlaylistOwner(id, owner) {

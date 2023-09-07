@@ -252,7 +252,7 @@ class AlbumsService {
 
   async deleteSongById(id) {
     const query = {
-      text: 'DELETE FROM songs WHERE id = $1 RETURNING id, albumId',
+      text: 'DELETE FROM songs WHERE id = $1 RETURNING id, album_id',
       values: [id],
     };
  
@@ -262,8 +262,8 @@ class AlbumsService {
     if (!result.rows.length) {
       throw new NotFoundError('Song gagal dihapus. Id tidak ditemukan');
     }
-    if(Object.keys(result.rows[0]).length > 1 && result.rows[0].albumid !== null){
-      const albumId = result.rows[0].albumid;
+    if(Object.keys(result.rows[0]).length > 1 && result.rows[0].album_id !== null){
+      const albumId = result.rows[0].album_id;
       const queryDelSong = {
         text: 'SELECT * FROM albums WHERE id = $1',
         values: [albumId],
