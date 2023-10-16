@@ -3,12 +3,12 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
 
-//album
+// album
 const albums = require('./api/musics');
 const AlbumsService = require('./services/postgres/MusicService');
 const AlbumsValidator = require('./validator/musics');
 
-//playlist
+// playlist
 const playlist = require('./api/playlist');
 const PlaylistService = require('./services/postgres/PlaylistService');
 const PlaylistValidator = require('./validator/playlist');
@@ -23,19 +23,18 @@ const authentications = require('./api/authentications');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
- 
+
 // collaborations
 const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
- 
+
 const init = async () => {
   const collaborationsService = new CollaborationsService();
   const playlistService = new PlaylistService(collaborationsService);
   const albumsService = new AlbumsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
-
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -54,7 +53,6 @@ const init = async () => {
     },
   ]);
 
-
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('musicsapp_jwt', 'jwt', {
     keys: process.env.ACCESS_TOKEN_KEY,
@@ -71,50 +69,50 @@ const init = async () => {
       },
     }),
   });
- 
+
   await server.register([
-  {
-    plugin: albums,
-    options: {
-      service: albumsService,
-      validator: AlbumsValidator,
+    {
+      plugin: albums,
+      options: {
+        service: albumsService,
+        validator: AlbumsValidator,
+      },
     },
-  },
-  {
-    plugin: playlist,
-    options: {
-      service: playlistService,
-      validator: PlaylistValidator,
+    {
+      plugin: playlist,
+      options: {
+        service: playlistService,
+        validator: PlaylistValidator,
+      },
     },
-  },
-  {
-    plugin: users,
-    options: {
-      service: usersService,
-      validator: UsersValidator,
+    {
+      plugin: users,
+      options: {
+        service: usersService,
+        validator: UsersValidator,
+      },
     },
-  },
-  {
-    plugin: authentications,
-    options: {
-      authenticationsService,
-      usersService,
-      tokenManager: TokenManager,
-      validator: AuthenticationsValidator,
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        usersService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
+      },
     },
-  },
-  {
-    plugin: collaborations,
-    options: {
-      collaborationsService,
-      playlistService,
-      validator: CollaborationsValidator,
+    {
+      plugin: collaborations,
+      options: {
+        collaborationsService,
+        playlistService,
+        validator: CollaborationsValidator,
+      },
     },
-  },
-]);
- 
+  ]);
+
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);
 };
- 
+
 init();

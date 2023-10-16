@@ -27,8 +27,6 @@ class ActivitiesService {
 
     return result.rows.map(mapActivitiesToModel)[0];
   }
-
-
 }
 
 module.exports = ActivitiesService;

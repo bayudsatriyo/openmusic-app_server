@@ -16,7 +16,10 @@
         "class-methods-use-this": "off",
         "no-underscore-dangle": 0,
         "no-undef": "off",
+        "camelcase": "off",
         "no-unused-vars": "off",
-        "eslint-disable-next-line camelcase": false
+        "eslint-disable-next-line": "off",
+        "no-multi-str": "off",
+        "max-len": "off"
     }
 }
