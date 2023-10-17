@@ -331,7 +331,7 @@ class AlbumsHandler {
 
       const response = h.response({
         status: 'success',
-        message: Song,
+        message: 'song has been delete',
       });
       response.code(200);
       return response;

@@ -64,23 +64,43 @@ class PlaylistService {
   async getPlaylist_songById(id) {
     // beri username jhon
     const query = {
-      text: 'SELECT\
-      playlist_song.playlist_id AS id,\
-      playlist.name,\
-      users.username\
-  FROM\
-      playlist_song\
-  JOIN\
-      playlist ON playlist_song.playlist_id = playlist.id\
-  JOIN\
-      users ON playlist.owner = users.id\
-  WHERE\
-      playlist_song.playlist_id = $1;',
+      // eslint-disable-next-line quotes
+      text: `SELECT playlist.id AS id, playlist.name AS name, users.username AS username, json_agg(json_build_object('id', songs.id, 'title', songs.title, 'performer', songs.performer)) AS songs
+      FROM playlist
+      JOIN playlist_song ON playlist.id = playlist_song.playlist_id
+      JOIN users ON playlist.owner = users.id
+      JOIN songs ON playlist_song.song_id = songs.id
+      WHERE playlist.id = $1
+      GROUP BY playlist.id, users.id;`,
       values: [id],
     };
     const result = await this._pool.query(query);
-    console.log(result.rows);
-    return result.rows.map(mapDBPlaylistToModel)[0];
+    const finalresult = await result.rows[0];
+    if (!result.rows.length) {
+      // bila album tidak memiliki songs
+      const query2 = {
+        text: 'SELECT\
+        playlist_song.playlist_id AS id,\
+        playlist.name,\
+        users.username\
+    FROM\
+        playlist_song\
+    JOIN\
+        playlist ON playlist_song.playlist_id = playlist.id\
+    JOIN\
+        users ON playlist.owner = users.id\
+    WHERE\
+        playlist_song.playlist_id = $1;',
+        values: [id],
+      };
+      const result2 = await this._pool.query(query2);
+      console.log(result2.rows.map(mapDBPlaylistToModel)[0]);
+      if (!result2.rows.length) {
+        throw new NotFoundError('playlist tidak ditemukan');
+      }
+      return result2.rows[0];
+    }
+    return finalresult;
   }
 
   async getSongsPlaylist_songById(id) {
