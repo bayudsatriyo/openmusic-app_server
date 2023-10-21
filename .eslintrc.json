@@ -20,6 +20,8 @@
         "no-unused-vars": "off",
         "eslint-disable-next-line": "off",
         "no-multi-str": "off",
-        "max-len": "off"
+        "max-len": "off",
+        "import/no-unresolved" : 0,
+        "import/no-extraneous-dependencies": false
     }
 }
