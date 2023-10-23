@@ -61,13 +61,15 @@ class AlbumsService {
       };
       const result2 = await this._pool.query(query2);
       const cekAlbum = result2.rows.map(mapDBToModel)[0];
-      console.log(cekAlbum);
+      delete cekAlbum.cover;
+      console.log(result2.rows);
       if (!result2.rows.length) {
         throw new NotFoundError('Albums tidak ditemukan');
       }
       return cekAlbum;
     }
     const cekAlbum = result.rows.map(mapDBToModel)[0];
+    delete cekAlbum.cover;
     return cekAlbum;
   }
 
@@ -75,6 +77,19 @@ class AlbumsService {
     const query = {
       text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
       values: [name, year, id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
+    }
+  }
+
+  async addCoverAlbumById(id, cover) {
+    const query = {
+      text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+      values: [cover, id],
     };
 
     const result = await this._pool.query(query);

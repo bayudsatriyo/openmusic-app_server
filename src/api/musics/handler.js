@@ -75,6 +75,7 @@ class AlbumsHandler {
         },
       });
       response.code(200);
+      console.log(response.statusCode);
       return response;
     } catch (error) {
       if (error instanceof ClientError) {
