@@ -3,7 +3,7 @@ const routes = (handler) => [
     {
       method: 'POST',
       path: '/albums/{id}/likes',
-      handler: handler.postSongsPlaylistHandler,
+      handler: handler.postLikesHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
@@ -11,15 +11,12 @@ const routes = (handler) => [
     {
       method: 'GET',
       path: '/albums/{id}/likes',
-      handler: handler.getSongsPlaylistByIdHandler,
-      options: {
-        auth: 'musicsapp_jwt',
-      },
+      handler: handler.getLikedByIdHandler,
     },
     {
       method: 'DELETE',
       path: '/albums/{id}/likes',
-      handler: handler.deleteSongPlaylistByIdHandler,
+      handler: handler.deleteLikedByIdHandler,
       options: {
         auth: 'musicsapp_jwt',
       },
