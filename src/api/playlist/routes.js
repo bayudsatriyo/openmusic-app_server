@@ -24,14 +24,6 @@ const routes = (handler) => [
       auth: 'musicsapp_jwt',
     },
   },
-  // {
-  //   method: 'GET',
-  //   path: '/playlist/{id}',
-  //   handler: handler.getPlaylistByIdHandler,
-  //   options: {
-  //     auth: 'musicsapp_jwt',
-  //   },
-  // },
   {
     method: 'GET',
     path: '/playlists/{id}/songs',
