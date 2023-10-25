@@ -60,12 +60,12 @@ class AlbumsService {
         values: [id],
       };
       const result2 = await this._pool.query(query2);
-      const cekAlbum = result2.rows.map(mapDBToModel)[0];
-      delete cekAlbum.cover;
-      console.log(result2.rows);
       if (!result2.rows.length) {
         throw new NotFoundError('Albums tidak ditemukan');
       }
+      const cekAlbum = result2.rows.map(mapDBToModel)[0];
+      delete cekAlbum.cover;
+      console.log(result2.rows);
       return cekAlbum;
     }
     const cekAlbum = result.rows.map(mapDBToModel)[0];
