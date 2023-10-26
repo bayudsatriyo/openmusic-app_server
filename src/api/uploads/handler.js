@@ -19,7 +19,7 @@ class UploadsHandler {
 
         await this._albumsService.getAlbumById(id);
         const filename = await this._storageService.writeFile(cover, cover.hapi);
-        const fileLocation =  `http://${process.env.HOST}:${process.env.PORT}/upload/cover/${filename}`;
+        const fileLocation =  `http://${process.env.HOST}:${process.env.PORT}/albums/cover/${filename}`;
         console.log(typeof(fileLocation));
         await this._albumsService.addCoverAlbumById(id, fileLocation);
         const response = h.response({
